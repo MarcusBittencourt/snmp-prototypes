@@ -121,7 +121,7 @@ public class MainWindow {
 		frame.getContentPane().add(label_6);
 		
 		JComboBox cb_inteface = new JComboBox();
-		cb_inteface.setModel(new DefaultComboBoxModel(Interfaces.values()));
+		cb_inteface.setModel(new DefaultComboBoxModel(InterfacePoint.values()));
 		cb_inteface.setBounds(10, 246, 470, 20);
 		frame.getContentPane().add(cb_inteface);
 		
