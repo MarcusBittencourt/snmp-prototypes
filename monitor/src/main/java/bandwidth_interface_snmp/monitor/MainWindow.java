@@ -170,11 +170,9 @@ public class MainWindow {
 		label_9.setBounds(10, 287, 165, 22);
 		frame.getContentPane().add(label_9);
 		
-		 XYDataset ds = createDataset();
-         JFreeChart chart = ChartFactory.createXYLineChart("Taxa de utilização","x", "y", ds, PlotOrientation.VERTICAL, true, true,false);
-         ChartPanel cp = new ChartPanel(chart);
-         cp.setBounds(614, 20, 453, 395);
-         frame.getContentPane().add(cp);
+		 LineChart chart = new LineChart("Taxa de utilização"); 
+         chart.getChartPanel().setBounds(614, 20, 453, 395);
+         frame.getContentPane().add(chart.getChartPanel());
 
          try {
         	 SNMPClient client = new SNMPClient("127.0.0.1", "161", "abcbolinhas", 1500, 2);
@@ -197,39 +195,20 @@ public class MainWindow {
         	 cb_inteface.setModel(model);
          
         	 cb_inteface.addActionListener(new ActionListener() {
-        		 public void actionPerformed(ActionEvent e) {
-        			 try {
-        			    int indiceSelecionado = cb_inteface.getSelectedIndex() + 1;
-        			    Double ifSpeed = Double.valueOf(client.access(InterfacePoint.IF_SPEED.SNMPbranch + indiceSelecionado));
-        			 	Double ifInOctetsBegin = Double.valueOf(client.access(InterfacePoint.IF_IN_OCTETS.SNMPbranch + indiceSelecionado));
-						Double ifOutOctetsBegin = Double.valueOf(client.access(InterfacePoint.IF_OUT_OCTETS.SNMPbranch + indiceSelecionado));
-						int time = Integer.valueOf(txt_intervalo.getText());
-						TimeUnit.SECONDS.sleep(time);				
-						Double ifInOctetsEnd = Double.valueOf(client.access(InterfacePoint.IF_IN_OCTETS.SNMPbranch + indiceSelecionado));
-						Double ifOutOctetsEnd = Double.valueOf(client.access(InterfacePoint.IF_OUT_OCTETS.SNMPbranch + indiceSelecionado));
-						double traffic = Monitor.traffic(ifInOctetsBegin, ifInOctetsEnd, ifOutOctetsBegin, ifOutOctetsEnd, ifSpeed, time, DataUnit.BYTE);
-						System.out.println(traffic);
-        			 } catch (Exception exception) {
-        				 exception.printStackTrace();
+				public void actionPerformed(ActionEvent e) {
+					int forInterface = cb_inteface.getSelectedIndex() + 1;
+					int inteval = Integer.valueOf(txt_intervalo.getText());
+					try {
+						new Monitor().synchronize(inteval, forInterface);
+					} catch (IOException e1) {
+						e1.printStackTrace();
 					}
-        		 }
+				}
         	 });
         	 
          } catch (IOException e) {
         	 e.printStackTrace();
          }
-         
-//		cb_inteface.addItemListener(new ItemListener() {
-//			public void itemStateChanged(ItemEvent arg0) {
-//				
-//			}
-//		});
 	}
 
-	private static XYDataset createDataset() {
-        DefaultXYDataset ds = new DefaultXYDataset();
-        double[][] data = { {0.1}, {1} };
-        ds.addSeries("series1", data);
-        return ds;
-    }
 }
