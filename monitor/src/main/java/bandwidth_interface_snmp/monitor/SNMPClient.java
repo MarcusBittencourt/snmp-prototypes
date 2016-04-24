@@ -20,21 +20,25 @@ public class SNMPClient {
 
 	Snmp snmp = null;
 	String address = null;
-
+	int timeout;
+	int retransmissoes;
+	String communit;
 	/**
 	 * Constructor
 	 * 
-	 * @param add
+	 * @param address
+	 * @throws IOException 
 	 */
-	public SNMPClient(String add) {
-		address = add;
+	public SNMPClient(String ip, String port, String communit, int retransmissoes, int timeout) throws IOException {
+		this.address = "udp:" + ip + "/" + port;
+		this.communit = communit;
+		this.timeout = timeout;
+		this.retransmissoes = retransmissoes;
+		this.start();
 	}
 
-	public static String access(InterfacePoint interfacePoint) throws IOException {
-		SNMPClient client = new SNMPClient("udp:127.0.0.1/161");
-		client.start();
-		String value = client.getAsString(new OID(interfacePoint.text));
-		return value;
+	public String access(String interfacePoint) throws IOException {
+		return this.getAsString(new OID(interfacePoint));
 	}
 
 	/**
@@ -90,13 +94,13 @@ public class SNMPClient {
 	 * 
 	 * @return
 	 */
-	private Target getTarget() {
+	public Target getTarget() {
 		Address targetAddress = GenericAddress.parse(address);
 		CommunityTarget target = new CommunityTarget();
-		target.setCommunity(new OctetString("public"));
+		target.setCommunity(new OctetString(communit));
 		target.setAddress(targetAddress);
-		target.setRetries(2);
-		target.setTimeout(1500);
+		target.setRetries(retransmissoes);
+		target.setTimeout(timeout);
 		target.setVersion(SnmpConstants.version2c);
 		return target;
 	}

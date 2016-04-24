@@ -4,6 +4,7 @@ import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JTextField;
+import javax.xml.bind.DatatypeConverter;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -18,6 +19,22 @@ import javax.swing.JComboBox;
 import java.awt.TextArea;
 import javax.swing.JPanel;
 import javax.swing.DefaultComboBoxModel;
+import java.awt.event.ItemListener;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.awt.event.ItemEvent;
+import java.awt.event.TextListener;
+import java.awt.event.TextEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class MainWindow {
 
@@ -121,7 +138,10 @@ public class MainWindow {
 		frame.getContentPane().add(label_6);
 		
 		JComboBox cb_inteface = new JComboBox();
-		cb_inteface.setModel(new DefaultComboBoxModel(InterfacePoint.values()));
+		
+		
+		List<String> interfacesNames = new ArrayList<>();
+		
 		cb_inteface.setBounds(10, 246, 470, 20);
 		frame.getContentPane().add(cb_inteface);
 		
@@ -155,8 +175,57 @@ public class MainWindow {
          ChartPanel cp = new ChartPanel(chart);
          cp.setBounds(614, 20, 453, 395);
          frame.getContentPane().add(cp);
+
+         try {
+        	 SNMPClient client = new SNMPClient("127.0.0.1", "161", "abcbolinhas", 1500, 2);
+        	 
+        	 String systemDescription = "Description: " + client.access(InterfacePoint.SYSTEM_DESCRPTION.SNMPbranch) + "\n";
+        	 String systemUptime= "Uptime: " + client.access(InterfacePoint.SYSTEM_UPTIME.SNMPbranch) + "\n";
+        	 String systemContact = "Contact: " + client.access(InterfacePoint.SYSTEM_CONTACT.SNMPbranch) + "\n";
+        	 
+        	 txtarea_resumoEquipamento.setText(systemContact + systemDescription + systemUptime);
+        	 
+        	 int numeroInterfaces = Integer.valueOf(client.access(InterfacePoint.IF_NUMBER.SNMPbranch));
+        	 List<String> interfaces = new ArrayList<>();
+        	 for (int indice = 1; indice <= numeroInterfaces; indice++) {
+        		 String nomeInterface = client.access(InterfacePoint.IF_DESCRIPTION.SNMPbranch + indice);
+        		 byte[] textoHexadecimal = DatatypeConverter.parseHexBinary(nomeInterface.replace(":", ""));
+        		 interfaces.add(new String(textoHexadecimal, "UTF-8"));
+        	 }
+        	 
+        	 DefaultComboBoxModel model = new DefaultComboBoxModel(interfaces.toArray());
+        	 cb_inteface.setModel(model);
+         
+        	 cb_inteface.addActionListener(new ActionListener() {
+        		 public void actionPerformed(ActionEvent e) {
+        			 try {
+        			    int indiceSelecionado = cb_inteface.getSelectedIndex() + 1;
+        			    Double ifSpeed = Double.valueOf(client.access(InterfacePoint.IF_SPEED.SNMPbranch + indiceSelecionado));
+        			 	Double ifInOctetsBegin = Double.valueOf(client.access(InterfacePoint.IF_IN_OCTETS.SNMPbranch + indiceSelecionado));
+						Double ifOutOctetsBegin = Double.valueOf(client.access(InterfacePoint.IF_OUT_OCTETS.SNMPbranch + indiceSelecionado));
+						int time = Integer.valueOf(txt_intervalo.getText());
+						TimeUnit.SECONDS.sleep(time);				
+						Double ifInOctetsEnd = Double.valueOf(client.access(InterfacePoint.IF_IN_OCTETS.SNMPbranch + indiceSelecionado));
+						Double ifOutOctetsEnd = Double.valueOf(client.access(InterfacePoint.IF_OUT_OCTETS.SNMPbranch + indiceSelecionado));
+						double traffic = Monitor.traffic(ifInOctetsBegin, ifInOctetsEnd, ifOutOctetsBegin, ifOutOctetsEnd, ifSpeed, time, DataUnit.BYTE);
+						System.out.println(traffic);
+        			 } catch (Exception exception) {
+        				 exception.printStackTrace();
+					}
+        		 }
+        	 });
+        	 
+         } catch (IOException e) {
+        	 e.printStackTrace();
+         }
+         
+//		cb_inteface.addItemListener(new ItemListener() {
+//			public void itemStateChanged(ItemEvent arg0) {
+//				
+//			}
+//		});
 	}
-	
+
 	private static XYDataset createDataset() {
         DefaultXYDataset ds = new DefaultXYDataset();
         double[][] data = { {0.1}, {1} };
