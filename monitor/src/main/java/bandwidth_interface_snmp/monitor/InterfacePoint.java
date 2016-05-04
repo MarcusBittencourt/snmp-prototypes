@@ -5,12 +5,12 @@ public enum InterfacePoint {
 	SYSTEM_DESCRPTION("SysDesc", "1.3.6.1.2.1.1.1.0"),
 	SYSTEM_UPTIME("Uptime", "1.3.6.1.2.1.1.3.0"),
 	SYSTEM_CONTACT("SysContac" , "1.3.6.1.2.1.1.4.0"), 
+	IF_NUMBER("IfNumber", "1.3.6.1.2.1.2.1.0"),
 	
 	IF_DESCRIPTION("IfDescr", "1.3.6.1.2.1.2.2.1.2."),
-	IF_IN_OCTETS("IfInOctets", "%s"),
-	IF_OUT_OCTETS("IfOutOctets", "%s"),
+	IF_IN_OCTETS("IfInOctets", "1.3.6.1.2.1.2.2.1.10."),
+	IF_OUT_OCTETS("IfOutOctets", "1.3.6.1.2.1.2.2.1.16."),
 	IF_SPEED("IfSpeed","1.3.6.1.2.1.2.2.1.5."),
-	IF_NUMBER("IfNumber", "1.3.6.1.2.1.2.1.0"),
 	;
 	
 	String description;

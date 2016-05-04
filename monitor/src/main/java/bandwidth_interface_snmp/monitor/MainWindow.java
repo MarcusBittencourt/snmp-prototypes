@@ -138,8 +138,6 @@ public class MainWindow {
 		frame.getContentPane().add(label_6);
 		
 		JComboBox cb_inteface = new JComboBox();
-		
-		
 		List<String> interfacesNames = new ArrayList<>();
 		
 		cb_inteface.setBounds(10, 246, 470, 20);
@@ -170,10 +168,18 @@ public class MainWindow {
 		label_9.setBounds(10, 287, 165, 22);
 		frame.getContentPane().add(label_9);
 		
-		 LineChart chart = new LineChart("Taxa de utilização"); 
-         chart.getChartPanel().setBounds(614, 20, 453, 395);
-         frame.getContentPane().add(chart.getChartPanel());
+//		 LineChart chart = new LineChart("Taxa de utilização"); 
+//         chart.getChartPanel().setBounds(614, 20, 453, 395);
+//         frame.getContentPane().add(chart.getChartPanel());
 
+         txt_intervalo.setText("2");
+         txt_ip.setText("127.0.0.1");
+         txt_porta.setText("161");
+         txt_communit.setText("abcbolinhas");
+         txt_versao.setText("2c");
+         txt_timeout.setText("1500");
+         txt_retransmissao.setText("2");
+         
          try {
         	 SNMPClient client = new SNMPClient("127.0.0.1", "161", "abcbolinhas", 1500, 2);
         	 
@@ -196,10 +202,20 @@ public class MainWindow {
          
         	 cb_inteface.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
+					
 					int forInterface = cb_inteface.getSelectedIndex() + 1;
 					int inteval = Integer.valueOf(txt_intervalo.getText());
 					try {
-						new Monitor().synchronize(inteval, forInterface);
+						Monitor monitor = new Monitor(txt_ip.getText(), 
+								txt_porta.getText(), 
+								txt_communit.getText(), 
+								txt_timeout.getText(), 
+								txt_retransmissao.getText()
+						);
+						
+						double traffic = monitor.synchronize(inteval, forInterface);
+						txtarea_resumoInterface.setText(String.valueOf(traffic));
+						System.out.println(interfaces.get(forInterface) + ": " + traffic);
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
