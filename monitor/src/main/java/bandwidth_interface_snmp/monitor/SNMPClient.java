@@ -34,7 +34,6 @@ public class SNMPClient {
 		this.communit = communit;
 		this.timeout = timeout;
 		this.retransmissoes = retransmissoes;
-		this.start();
 	}
 
 	public String access(String interfacePoint) throws IOException {
@@ -48,7 +47,7 @@ public class SNMPClient {
 	 * 
 	 * @throws IOException
 	 */
-	private void start() throws IOException {
+	public void start() throws IOException {
 		TransportMapping transport = new DefaultUdpTransportMapping();
 		snmp = new Snmp(transport);
 		// Do not forget this line!

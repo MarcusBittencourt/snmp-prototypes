@@ -13,6 +13,7 @@ public class Monitor {
 	
 	public Monitor(String ip, String port, String communit, String timeout, String retransmition) throws IOException {
 		client = new SNMPClient(ip, port, communit, Integer.valueOf(timeout), Integer.valueOf(retransmition));
+		client.start();
 	}
 	
 //	public static void main(String[] args) {
