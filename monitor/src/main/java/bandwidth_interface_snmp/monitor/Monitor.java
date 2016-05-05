@@ -15,10 +15,6 @@ public class Monitor {
 		client = new SNMPClient(ip, port, communit, Integer.valueOf(timeout), Integer.valueOf(retransmition));
 		client.start();
 	}
-	
-//	public static void main(String[] args) {
-//		System.out.println(traffic(300.0, 1225500000.0, 3000.0, 450500000.0, 100000000.0, 300, DataUnit.BYTE));
-//	}
 
     public static double traffic(
     		double ifInOctetsBegin, 
@@ -31,7 +27,7 @@ public class Monitor {
     	 double ifInOctets = ifInOctetsEnd - ifInOctetsBegin;
     	 double ifOutOctets = ifOutOctetsEnd - ifOutOctetsBegin;
     	 double deltaTime = time * speed;
-    	 double traffic = (new Double(ifInOctets + ifOutOctets).intValue() / deltaTime) * 800.0;    	
+    	 double traffic = (new Double(ifInOctets + ifOutOctets).intValue() / deltaTime) * (8 * 100);    	
     	return traffic;
     }
     
@@ -60,7 +56,7 @@ public class Monitor {
 			double ifOutOctetsEnd = (double) Integer.valueOf(client.access(ifOutOctetsEndTargetOID));
 			
 			double traffic = Monitor.traffic(ifInOctetsBegin, ifInOctetsEnd, ifOutOctetsBegin, ifOutOctetsEnd, ifSpeed, time, DataUnit.BYTE);
-			return traffic;
+			return traffic * 100.00;
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} catch (NumberFormatException e) {

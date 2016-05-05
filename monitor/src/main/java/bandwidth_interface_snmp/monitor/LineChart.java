@@ -34,7 +34,7 @@ public class LineChart extends ApplicationFrame {
     public LineChart(String title) {
         super(title);
         points = new XYSeries("Taxa de Utilização");
-        points.add(2.0, 100.0);
+        points.add(10, 100.0);
         
         XYSeriesCollection dataset = new XYSeriesCollection();
         dataset.addSeries(points);
@@ -85,7 +85,7 @@ public class LineChart extends ApplicationFrame {
         plot.setRangeGridlinePaint(Color.white);
         
         final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-        renderer.setSeriesLinesVisible(0, false);
+        renderer.setSeriesLinesVisible(1, false);
         renderer.setSeriesShapesVisible(1, false);
         plot.setRenderer(renderer);
 

@@ -1,40 +1,22 @@
 package bandwidth_interface_snmp.monitor;
 
 import java.awt.EventQueue;
+import java.awt.Label;
+import java.awt.TextArea;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.xml.bind.DatatypeConverter;
 
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.xy.DefaultXYDataset;
-import org.jfree.data.xy.XYDataset;
-
-import java.awt.Label;
-import java.awt.Panel;
-import javax.swing.JComboBox;
-import java.awt.TextArea;
-import javax.swing.JPanel;
-import javax.swing.DefaultComboBoxModel;
-import java.awt.event.ItemListener;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.awt.event.ItemEvent;
-import java.awt.event.TextListener;
-import java.awt.event.TextEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import org.jfree.data.xy.XYDataItem;
+import javax.swing.JButton;
 
 public class MainWindow {
 
@@ -172,7 +154,7 @@ public class MainWindow {
          chart.getChartPanel().setBounds(614, 20, 453, 395);
          frame.getContentPane().add(chart.getChartPanel());
 
-         txt_intervalo.setText("20");
+         txt_intervalo.setText("3");
          txt_ip.setText("127.0.0.1");
          txt_porta.setText("161");
          txt_communit.setText("abcbolinhas");
@@ -180,29 +162,46 @@ public class MainWindow {
          txt_timeout.setText("3000");
          txt_retransmissao.setText("10");
          
-         try {
         	 
-        	 SNMPClient client = new SNMPClient(txt_ip.getText(), txt_porta.getText(), txt_communit.getText(), Integer.parseInt(txt_timeout.getText()), Integer.parseInt(txt_retransmissao.getText()));
-        	 client.start();
-        	 String systemDescription = "Description: " + client.access(InterfacePoint.SYSTEM_DESCRPTION.SNMPbranch) + "\n";
-        	 String systemUptime= "Uptime: " + client.access(InterfacePoint.SYSTEM_UPTIME.SNMPbranch) + "\n";
-        	 String systemContact = "Contact: " + client.access(InterfacePoint.SYSTEM_CONTACT.SNMPbranch) + "\n";
-        	 
-        	 txtarea_resumoEquipamento.setText(systemContact + systemDescription +systemUptime);
-        	 
-        	 int numeroInterfaces = Integer.valueOf(client.access(InterfacePoint.IF_NUMBER.SNMPbranch));
-        	 List<String> interfaces = new ArrayList<>();
-        	 for (int indice = 1; indice <= numeroInterfaces; indice++) {
-        		 String nomeInterface = client.access(InterfacePoint.IF_DESCRIPTION.SNMPbranch + indice);
-        		 byte[] textoHexadecimal = DatatypeConverter.parseHexBinary(nomeInterface.replace(":", ""));
-        		 interfaces.add(new String(textoHexadecimal, "UTF-8"));
-        	 }
-        	 
-        	 DefaultComboBoxModel model = new DefaultComboBoxModel(interfaces.toArray());
-        	 cb_inteface.setModel(model);
+        	
+        	 JButton btnNewButton = new JButton("Conectar");
+        	 btnNewButton.addActionListener(new ActionListener() {
+        	 	public void actionPerformed(ActionEvent e) {
+        	 		try {
+        	 		 SNMPClient client = new SNMPClient(txt_ip.getText(), txt_porta.getText(), txt_communit.getText(), Integer.parseInt(txt_timeout.getText()), Integer.parseInt(txt_retransmissao.getText()));
+                	 client.start();
+                	 
+                	 String systemDescription = "Description: " + client.access(InterfacePoint.SYSTEM_DESCRPTION.SNMPbranch) + "\n";
+                	 String systemUptime= "Uptime: " + client.access(InterfacePoint.SYSTEM_UPTIME.SNMPbranch) + "\n";
+                	 String systemContact = "Contact: " + client.access(InterfacePoint.SYSTEM_CONTACT.SNMPbranch) + "\n";
+                	 
+                	 txtarea_resumoEquipamento.setText(systemContact + systemDescription +systemUptime);
+                	 
+                	 int numeroInterfaces = Integer.valueOf(client.access(InterfacePoint.IF_NUMBER.SNMPbranch));
+                	 List<String> interfaces = new ArrayList<>();
+                	 for (int indice = 1; indice <= numeroInterfaces; indice++) {
+                		 String nomeInterface = client.access(InterfacePoint.IF_DESCRIPTION.SNMPbranch + indice);
+                		 byte[] textoHexadecimal = DatatypeConverter.parseHexBinary(nomeInterface.replace(":", ""));
+                		 interfaces.add(new String(textoHexadecimal, "UTF-8"));
+                	 }
+                	 
+                	 DefaultComboBoxModel model = new DefaultComboBoxModel(interfaces.toArray());
+                	 cb_inteface.setModel(model);
+                	 
+        	         } catch (IOException e2) {
+        	        	 e2.printStackTrace();
+        	         }
+        	 	}
+        	 });
+        	 btnNewButton.setBounds(493, 79, 89, 23);
+        	 frame.getContentPane().add(btnNewButton);
          
+        	 int x = 0;
         	 cb_inteface.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
+        		Thread chartThread = null;
+				
+        		public void actionPerformed(ActionEvent e) {
+					if(chartThread !=  null) chartThread.interrupt();
 					
 					int forInterface = cb_inteface.getSelectedIndex() + 1;
 					int inteval = Integer.valueOf(txt_intervalo.getText());
@@ -215,18 +214,26 @@ public class MainWindow {
 								txt_retransmissao.getText()
 						);
 						
-						double traffic = monitor.synchronize(inteval, forInterface);
-						txtarea_resumoInterface.setText(String.valueOf(traffic));
-						System.out.println(interfaces.get(forInterface) + ": " + traffic);
+						Runnable runnable = new Runnable() {
+
+							@Override
+							public void run() {
+								while (true) {		
+									double traffic = monitor.synchronize(inteval, forInterface);
+									txtarea_resumoInterface.setText(String.valueOf(traffic));
+									XYDataItem dataItem  = (XYDataItem) chart.points.getItems().get(chart.points.getItems().size() - 1);
+									chart.points.add(dataItem.getX().doubleValue() + 1, traffic);
+								}
+							}
+						};
+						
+						chartThread = new Thread(runnable);
+						chartThread.start();
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
 				}
         	 });
-        	 
-         } catch (IOException e) {
-        	 e.printStackTrace();
-         }
+        	
 	}
-
 }
